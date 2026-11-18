@@ -1,0 +1,25 @@
+title: Bash Reverse Shell via /dev/tcp
+id: assay-0030
+status: stable
+description: Interactive bash redirected to a TCP socket.
+tags: [attack.execution, attack.t1059.004]
+level: critical
+logsource: { category: process_creation, product: linux }
+detection:
+  sel:
+    CommandLine|contains|all: ['bash', '-i', '/dev/tcp/']
+  condition: sel
+---
+title: Curl Piped Into Shell
+id: assay-0031
+status: test
+description: Remote script fetched and executed immediately.
+tags: [attack.command_and_control, attack.t1105]
+level: medium
+logsource: { category: process_creation, product: linux }
+detection:
+  fetch:
+    CommandLine|contains: ['curl ', 'wget ']
+  pipe:
+    CommandLine|re: '\|\s*(sudo\s+)?(ba|z)?sh\b'
+  condition: fetch and pipe

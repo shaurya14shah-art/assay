@@ -1,0 +1,67 @@
+title: Encoded PowerShell Command Line
+id: assay-0001
+status: stable
+description: PowerShell started with an encoded command argument, a common way to hide a payload.
+tags: [attack.execution, attack.t1059.001]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  img:
+    Image|endswith: ['\powershell.exe', '\pwsh.exe']
+  enc:
+    CommandLine|contains|windash: [' -enc ', ' -encodedcommand ', ' -ec ']
+  condition: img and enc
+---
+title: Office Application Spawns Script Interpreter
+id: assay-0002
+status: stable
+description: A Microsoft Office process launching a shell or script host, typical of a malicious document.
+tags: [attack.execution, attack.t1204.002]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  parent:
+    ParentImage|endswith: ['\winword.exe', '\excel.exe', '\powerpnt.exe', '\outlook.exe']
+  child:
+    Image|endswith: ['\cmd.exe', '\powershell.exe', '\wscript.exe', '\cscript.exe', '\mshta.exe']
+  condition: parent and child
+---
+title: Web Server Process Spawns Shell
+id: assay-0003
+status: test
+description: IIS worker process launching a command interpreter, indicating a web shell.
+tags: [attack.persistence, attack.t1505.003]
+level: critical
+logsource: { category: process_creation, product: windows }
+detection:
+  parent:
+    ParentImage|endswith: ['\w3wp.exe', '\httpd.exe', '\nginx.exe']
+  child:
+    Image|endswith: ['\cmd.exe', '\powershell.exe']
+  condition: parent and child
+---
+title: Remote HTA Execution
+id: assay-0004
+status: stable
+description: mshta fetching and running content from a URL.
+tags: [attack.defense_evasion, attack.t1218.005]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  sel:
+    Image|endswith: '\mshta.exe'
+    CommandLine|contains: ['http://', 'https://', 'javascript:', 'vbscript:']
+  condition: sel
+---
+title: Regsvr32 Scriptlet Execution
+id: assay-0005
+status: test
+description: regsvr32 loading a scriptlet from a remote location (squiblydoo).
+tags: [attack.defense_evasion, attack.t1218.010]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  sel:
+    Image|endswith: '\regsvr32.exe'
+    CommandLine|contains|all: ['/i:http', 'scrobj.dll']
+  condition: sel

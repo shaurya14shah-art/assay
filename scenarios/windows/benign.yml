@@ -1,0 +1,60 @@
+id: SC-B-001
+name: Admin runs a normal PowerShell script
+malicious: false
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+    CommandLine: 'powershell.exe -NoProfile -File C:\Scripts\Get-DiskReport.ps1'
+    ParentImage: 'C:\Windows\explorer.exe'
+    User: 'CORP\admin2'
+---
+id: SC-B-002
+name: Excel starts the print spooler helper
+malicious: false
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\SysWOW64\splwow64.exe'
+    CommandLine: 'splwow64.exe 12288'
+    ParentImage: 'C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE'
+    User: 'CORP\akhan'
+---
+id: SC-B-003
+name: IT deploys a nightly backup task from ProgramData
+note: Legitimate, but trips any rule that treats ProgramData as suspicious. A tuning candidate.
+malicious: false
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\schtasks.exe'
+    CommandLine: 'schtasks.exe /create /tn NightlyBackup /tr C:\ProgramData\Backup\run.cmd /sc daily /st 02:00'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\itops'
+---
+id: SC-B-004
+name: Shadow copies listed, not deleted
+malicious: false
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\vssadmin.exe'
+    CommandLine: 'vssadmin.exe list shadows'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\itops'
+---
+id: SC-B-005
+name: Local users listed
+malicious: false
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\net.exe'
+    CommandLine: 'net user'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\itops'
+---
+id: SC-B-006
+name: certutil computes a file hash
+malicious: false
+logsource: { category: process_creation, product: windows }
+events:
+  - Image: 'C:\Windows\System32\certutil.exe'
+    CommandLine: 'certutil.exe -hashfile C:\Downloads\setup.msi SHA256'
+    ParentImage: 'C:\Windows\System32\cmd.exe'
+    User: 'CORP\jsmith'

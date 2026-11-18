@@ -1,0 +1,67 @@
+title: Scheduled Task Created From Writable Path
+id: assay-0020
+status: test
+description: schtasks creating a task whose action lives in a user-writable or shared directory.
+tags: [attack.persistence, attack.t1053.005]
+level: medium
+logsource: { category: process_creation, product: windows }
+detection:
+  tool:
+    Image|endswith: '\schtasks.exe'
+    CommandLine|contains: '/create'
+  path:
+    CommandLine|contains: ['\AppData\', '\Temp\', '\ProgramData\', '\Users\Public\']
+  condition: tool and path
+---
+title: Run Key Persistence via reg.exe
+id: assay-0021
+status: stable
+description: reg.exe adding a value under a Run or RunOnce key.
+tags: [attack.persistence, attack.t1547.001]
+level: medium
+logsource: { category: process_creation, product: windows }
+detection:
+  sel:
+    Image|endswith: '\reg.exe'
+    CommandLine|contains|all: ['add', '\CurrentVersion\Run']
+  condition: sel
+---
+title: Certutil Used To Download A File
+id: assay-0022
+status: stable
+description: certutil retrieving content over HTTP, abused as a download utility.
+tags: [attack.command_and_control, attack.t1105]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  sel:
+    Image|endswith: '\certutil.exe'
+    CommandLine|contains|all: ['urlcache', 'http']
+  condition: sel
+---
+title: Windows Event Log Cleared
+id: assay-0023
+status: stable
+description: wevtutil or PowerShell clearing event logs.
+tags: [attack.defense_evasion, attack.t1070.001]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  wevt:
+    Image|endswith: '\wevtutil.exe'
+    CommandLine|contains: [' cl ', ' clear-log ']
+  ps:
+    CommandLine|contains: 'Clear-EventLog'
+  condition: wevt or ps
+---
+title: Defender Real-Time Protection Disabled
+id: assay-0024
+status: stable
+description: PowerShell turning off Microsoft Defender real-time monitoring.
+tags: [attack.defense_evasion, attack.t1562.001]
+level: high
+logsource: { category: process_creation, product: windows }
+detection:
+  sel:
+    CommandLine|contains|all: ['Set-MpPreference', 'DisableRealtimeMonitoring']
+  condition: sel

